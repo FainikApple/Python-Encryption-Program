@@ -151,7 +151,7 @@ r_k_collection = round_key_collection(hex_key) #list of round keys
 #print(r_k_collection)
 cur_state = 0
 for i in s_collection:
-    for g in range 10:
+    for g in range (10):
         if g > 10:
             i = add_round_key(mix_columns(shift_rows(sub_bytes(i))))
         else:
