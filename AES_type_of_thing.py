@@ -140,8 +140,8 @@ inv_sbox = [['0x52', '0x09', '0x6a', '0xd5', '0x30', '0x36', '0xa5', '0x38', '0x
            ['0x17', '0x2b', '0x04', '0x7e', '0xba', '0x77', '0xd6', '0x26', '0xe1', '0x69', '0x14', '0x63', '0x55', '0x21', '0x0c', '0x7d']]
 
 # _______________________________MAIN CODE__________________________________
-hex_key = turn_to_hex(key).split() #hex key
-hex_text = turn_to_hex(text).split() #hex text
+hex_key = turn_to_hex(text).split() #hex text
+hex_text = turn_to_hex(key).split() #hex key
 s_collection = state_collection(hex_text) #list of states
 r_k_collection = round_key_collection(hex_key) #list of round keys
 
@@ -149,33 +149,42 @@ r_k_collection = round_key_collection(hex_key) #list of round keys
 #print(hex_text)
 #print(s_collection)
 #print(r_k_collection)
-
+cur_state = 0
+for i in s_collection:
+    for g in range 10:
+        if g > 10:
+            i = add_round_key(mix_columns(shift_rows(sub_bytes(i))))
+        else:
+            i = add_round_key(shift_rows(sub_bytes(i)))
+    s_collection[cur_state] = i
+    cur_state += 1
+print(s_collection.split())
 #state = s_collection[cur_state]
-state = [["19","a0","9a","e9"],
-         ["3d","f4","c6","f8"],
-         ["e3","e2","8d","48"],
-         ["be","2b","2a","08"]]
+#state = [["19","a0","9a","e9"],
+         #["3d","f4","c6","f8"],
+         #["e3","e2","8d","48"],
+         #["be","2b","2a","08"]]
 
-round_key = [['a0', '88', '23', '2a'],
-             ['fa', '54', 'a3', '6c'],
-             ['fe', '2c', '39', '76'],
-             ['17', 'b1', '39', '05']]
+#round_key = [['a0', '88', '23', '2a'],
+             #['fa', '54', 'a3', '6c'],
+             #['fe', '2c', '39', '76'],
+             #['17', 'b1', '39', '05']]
 #____________________________________TEST___________________________________________
 
 # Transformation "SubBytes"
-state = sub_bytes(state, sbox)
+#state = sub_bytes(state, sbox)
 #print(state)
 
 # Transformation "ShiftRows"
-state = shift_rows(state)
+#state = shift_rows(state)
 #print(state)
 
 # Transformation "MixColumns"
-state = mix_columns(state)
+#state = mix_columns(state)
 #print(state)
 
 # Transformation "AddRoundKey"
-state = add_round_key(state, round_key)
-print(state)
+#state = add_round_key(state, round_key)
+#print(state)
 
 
