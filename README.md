@@ -1,2 +1,2 @@
 # AES-RSA-MAGMA-Encryption-program
-Program for encryting messages using AES, RSA and MAGMA encryption algorithms.
+Program for encrypting messages using AES, RSA and MAGMA encryption algorithms.
