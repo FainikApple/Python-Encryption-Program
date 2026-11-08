@@ -286,10 +286,159 @@ def inv_mix_columns(state:list) -> list:
 
 # AddRoundKey is its own inverse (can be used to encryption and decryption accordingly).
 
+#__________________________________DECRYPTION/ENCRYPTION FUNCTIONS_______________________________
+
+# AES Encryption function.
+def AES_ENCRYPTION(sbox, rcon): 
+
+    # Typing in data (text and key).
+    plain_txt = input('Type in the text you want to get encrypted ----> ')
+
+    print('')
+
+    key = input('Now, type in the key with which your text will get encrypted (please note, that if the key is not EXACTLY 16 symbols long, then # symbols would be added to the key, to match the required length) ----> ')        
+
+    # The process of modifying the typed in data (the text and the key).
+    plain_txt = till_divided_by_16(plain_txt)
+    key = till_equal_16(key)
+
+    # Encoding and hex'ing key and text
+    hex_key = turn_to_hex(key).split()
+    hex_text = turn_to_hex(plain_txt).split()
+
+    # Forming lists of states (from text) and lists of key (parts-like).
+    s_collection = state_collection(hex_text)
+    used_key = form_used_key(hex_key)
+    key = round_key_formation(hex_key)
+
+    # Forming a list of iteration keys.
+    list_of_r_keys = key_schedule(key, rcon, sbox)
+
+    # Encrypting
+    enc_s_collection = []
+
+    for g in s_collection:
+        state = g
+        state = add_round_key(state, list_of_r_keys[0])
+        for i in range (1, 11, 1):
+            state = sub_bytes(state, sbox)
+            state = shift_rows(state)
+            if i < 10:
+                state = mix_columns(state)
+            state = add_round_key(state, list_of_r_keys[i])
+        enc_s_collection.append(state)
+
+    enc_text = ''
+    for i in enc_s_collection:
+        for g in range(4):
+            for j in range(4):
+                enc_text = enc_text + i[g][j]
+
+    # Printing results.
+    print('')
+    print('_____________________________________________________ENCRYPTION RESULTS_____________________________________________________')
+    print('')
+    print('Initial data :', plain_txt)
+    print('Key, which was used for encryption :', used_key)
+    print('Encrypted data :', enc_text)
+    print('____________________________________________________________________________________________________________________________')
+    print('')
+
+    return 0
+
+# AES Decryption function.
+def AES_DECRYPTION(sbox, rcon, inv_sbox):
+
+    # Typing in encrypted data (encrypted text and key) and checking if the user is following requirements.
+    enc_text = input('Type in the encrypted data ----> ')
+    while len(enc_text) % 16 != 0:
+        print('')
+        enc_text = input("Sorry, cannot accept this data as it can't be divided by 16. Please, try again ----> ")
+
+    print('')    
+    
+    key = input('Type in the key, which was used for encryption (please note, that the key has to be EXACTLY 32 symbols long) ----> ')
+    while len(key) != 32:
+        print('')
+        key = input("Sorry, cannot accept this key as it doesn't match the required length. Please, try again ----> ")
+
+    # Forming a list of iteration keys.
+    s_key = form_two_symbol_list(key)
+    s_key = round_key_formation(s_key)
+    list_of_r_keys = key_schedule(s_key, rcon, sbox)
+
+    # Forming a list of encrypted data.
+    init_enc_txt = enc_text
+    enc_text = form_two_symbol_list(enc_text)
+    enc_s_collection = state_collection(enc_text)
+
+    # Decrypting.
+    dec_s_collection = []
+
+    for g in enc_s_collection:
+        state = g
+        state = add_round_key(state, list_of_r_keys[10])
+        for i in range (9, -1, -1):
+            state = inv_shift_rows(state)
+            state = inv_sub_bytes(state, inv_sbox)
+            state = add_round_key(state, list_of_r_keys[i])
+            if i > 0:
+                state = inv_mix_columns(state)
+        dec_s_collection.append(state)
+
+    dec_text = ''
+    for i in dec_s_collection:
+        for g in range(4):
+            for j in range(4):
+                dec_text = dec_text + i[g][j]
+
+    # Printing results.
+    print('')
+    print('_____________________________________________________DECRYPTION RESULTS_____________________________________________________')
+    print('')
+    print('Initial encrypted data :', init_enc_txt)
+    print('Key, which was used for decryption :', key)
+    print('Decrypted data :', bytes.fromhex(dec_text).decode())
+    print('____________________________________________________________________________________________________________________________')
+    print('')
+
+    return 0
+
+#_________________________________________MAIN OPERATING FUNCTION__________________________________
+
+def AES_ENCRYPTION_PROGRAM():
+
+    print("_____________________________________________________AES ENCRYPTION ALGORITHM_____________________________________________________")
+    print('')
+
+    program_cycle_continue = True
+
+    while program_cycle_continue:
+        decision = input("Would you like to encrypt, decrypt data or exit the algorithm entirely? ----> ")
+
+        if decision.lower() == 'encrypt':
+            print('')
+            AES_ENCRYPTION(sbox, rcon)
+
+        elif decision.lower() == 'decrypt':
+            print('')
+            AES_DECRYPTION(sbox, rcon, inv_sbox)
             
+        elif decision.lower() == 'exit':
+            print('__________________________________________________________________________________________________________________________________')
+            print('')
+            program_cycle_continue = False
+
+        else:
+            print('')
+            print('The entered data cannot be used to initiate any existing commands. Please try again.')
+            print('')    
+
+    return 0            
+
 #__________________________________TABLES WITH CONSTANT VALUES____________________________________
 
-# For SubBytes transformation and Key Schedule
+# For SubBytes transformation and Key Schedule (encryption process)
 sbox = [["63", "7c", "77", "7b", "f2", "6b", "6f", "c5", "30", "01", "67", "2b", "fe", "d7", "ab", "76"],
         ["ca", "82", "c9", "7d", "fa", "59", "47", "f0", "ad", "d4", "a2", "af", "9c", "a4", "72", "c0"],
         ["b7", "fd", "93", "26", "36", "3f", "f7", "cc", "34", "a5", "e5", "f1", "71", "d8", "31", "15"],
@@ -307,7 +456,7 @@ sbox = [["63", "7c", "77", "7b", "f2", "6b", "6f", "c5", "30", "01", "67", "2b",
         ["e1", "f8", "98", "11", "69", "d9", "8e", "94", "9b", "1e", "87", "e9", "ce", "55", "28", "df"],
         ["8c", "a1", "89", "0d", "bf", "e6", "42", "68", "41", "99", "2d", "0f", "b0", "54", "bb", "16"]]
 
-# For decrypting data
+# For decrypting data (decryption process)
 inv_sbox = [["52", "09", "6a", "d5", "30", "36", "a5", "38", "bf", "40", "a3", "9e", "81", "f3", "d7", "fb"],
             ["7c", "e3", "39", "82", "9b", "2f", "ff", "87", "34", "8e", "43", "44", "c4", "de", "e9", "cb"],
             ["54", "7b", "94", "32", "a6", "c2", "23", "3d", "ee", "4c", "95", "0b", "42", "fa", "c3", "4e"],
@@ -337,9 +486,8 @@ rcon = [['01', '00', '00', '00'],
         ['1b', '00', '00', '00'],
         ['36', '00', '00', '00']]
 
-#_______________________________________MAIN PROGRAM_______________________________________
-
-#________________________________________USED VARIABLES__________________________________
+#________________________________________USED VARIABLES___________________________________________
+# NOTE --> The following variables are used in encryption/decryption AES functions and the main operating function. These are displayed here for convenience.
 
 # hex_key = ''                                  Hex key.
 # hex_text = ''                                 Hex text.
@@ -354,120 +502,6 @@ rcon = [['01', '00', '00', '00'],
 # list_of_r_keys = []                           Used for storing generated round keys.
 # program_cycle_continue = True/False           Determines whether the program continues running or stops entirely.
 
-#__________________________________________________________________________________________
+#_________________________________________________________________________________________________
 
-print("_______________________________________AES ENCRYPTION PROGRAM________________________________________")
-print('')
-
-program_cycle_continue = True
-
-while program_cycle_continue:
-    decision = input("Would you like to encrypt, decrypt data or exit the program entirely? ----> ")
-
-    if decision.lower() == 'encrypt':
-        print('')
-
-        # Typing in data (text and key).
-        plain_txt = input('Type in the text you want to get encrypted ----> ')
-        key = input('Now, type in the key with which your text will get encrypted (please note, that if the key wont be EXACTLY 16 symbols long, then # symbols will be added to the key, to match the required length) ----> ')        
-
-        # The process of modifying the typed in data (the text and the key).
-        plain_txt = till_divided_by_16(plain_txt)
-        key = till_equal_16(key)
-
-        # Encoding and hex'ing key and text
-        hex_key = turn_to_hex(key).split()
-        hex_text = turn_to_hex(plain_txt).split()
-
-        # Forming lists of states (from text) and lists of key (parts-like).
-        s_collection = state_collection(hex_text)
-        used_key = form_used_key(hex_key)
-        key = round_key_formation(hex_key)
-
-        # Forming a list of iteration keys.
-        list_of_r_keys = key_schedule(key, rcon, sbox)
-
-        # Encrypting
-        enc_s_collection = []
-
-        for g in s_collection:
-            state = g
-            state = add_round_key(state, list_of_r_keys[0])
-            for i in range (1, 11, 1):
-                state = sub_bytes(state, sbox)
-                state = shift_rows(state)
-                if i < 10:
-                    state = mix_columns(state)
-                state = add_round_key(state, list_of_r_keys[i])
-            enc_s_collection.append(state)
-
-        enc_text = ''
-        for i in enc_s_collection:
-            for g in range(4):
-                for j in range(4):
-                    enc_text = enc_text + i[g][j]
-
-        # Printing results.
-        print('')
-        print('_______________________________________________ENCRYPTION RESULTS_______________________________________________')
-        print('')
-        print('Initial data :', plain_txt)
-        print('Key, which was used for encryption :', used_key)
-        print('Encrypted data :', enc_text)
-        print('________________________________________________________________________________________________________________')
-        print('')
-
-    elif decision.lower() == 'decrypt':
-        print('')
-
-        # Typing in encrypted data (encrypted text and key) and checking if the user is following requirements.
-        enc_text = input('Type in the encrypted data ----> ')
-        while len(enc_text) % 16 != 0:
-            enc_text = input("Sorry, cannot accept this data as it can't be divided by 16. Please, try again ----> ")
-        
-        key = input('Type in the key, which was used for encryption (please note, that the key has to be EXACTLY 32 symbols long) ----> ')
-        while len(key) != 32:
-            key = input("Sorry, cannot accept this key as it doesn't match the required length. Please, try again ----> ")
-
-        # Forming a list of iteration keys.
-        s_key = form_two_symbol_list(key)
-        s_key = round_key_formation(s_key)
-        list_of_r_keys = key_schedule(s_key, rcon, sbox)
-
-        # Forming a list of encrypted data.
-        init_enc_txt = enc_text
-        enc_text = form_two_symbol_list(enc_text)
-        enc_s_collection = state_collection(enc_text)
-
-        # Decrypting.
-        dec_s_collection = []
-
-        for g in enc_s_collection:
-            state = g
-            state = add_round_key(state, list_of_r_keys[10])
-            for i in range (9, -1, -1):
-                state = inv_shift_rows(state)
-                state = inv_sub_bytes(state, inv_sbox)
-                state = add_round_key(state, list_of_r_keys[i])
-                if i > 0:
-                    state = inv_mix_columns(state)
-            dec_s_collection.append(state)
-
-        dec_text = ''
-        for i in dec_s_collection:
-            for g in range(4):
-                for j in range(4):
-                    dec_text = dec_text + i[g][j]
-
-        # Printing results.
-        print('')
-        print('_______________________________________________DECRYPTION RESULTS_______________________________________________')
-        print('')
-        print('Initial encrypted data :', init_enc_txt)
-        print('Key, which was used for decryption :', key)
-        print('Decrypted data :', bytes.fromhex(dec_text).decode())
-        print('________________________________________________________________________________________________________________')
-        print('')
-
-    elif decision.lower() == 'exit':
-        program_cycle_continue = False 
+# AES_ENCRYPTION_PROGRAM() # The start of the whole program.

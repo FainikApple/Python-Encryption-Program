@@ -140,7 +140,7 @@ def G_final_operation(k:bytes, block:bytes) -> bytes:
 # The "state" variable goes through the cycle, changing each time the
 # "G_operation" function is called. Finally, we return the encrypted block of
 # data ("state" variable) after calling "G_final_operation" function.
-def magma_encryption(k:bytes, block:bytes) -> bytes:
+def magma_encrypt(k:bytes, block:bytes) -> bytes:
     iter_keys_list = key_schedule(k)
     state = block
     for i in range(31):
@@ -150,16 +150,125 @@ def magma_encryption(k:bytes, block:bytes) -> bytes:
 # Decryption of data. Not so different from the previous function,
 # only the flow of the cycle and the choice of iteration keys had
 # been changed.
-def magma_decryption(k:bytes, block:bytes) -> bytes:
+def magma_decrypt(k:bytes, block:bytes) -> bytes:
     iter_keys_list = key_schedule(k)
     state = block
     for i in range(31, 0, -1): # start : 31, step : -1
         state = G_operation(iter_keys_list[i], state)
     return G_final_operation(iter_keys_list[0], state)
 
-#______________________________________________MAIN PROGRAM______________________________________________
+#______________________________________ENCRYPTION/DECRYPTION FUNCTIONS___________________________________
 
-#_____________________________________________USED VARIABLES_________________________________________
+# Magma encryption function.
+def MAGMA_ENCRYPTION():
+
+    # Typing in the data and the key. 
+    plain_txt = input('Type in the data you want to get encrypted ----> ')
+
+    print('')
+
+    key = input('Now, type in the key with which your text will get encrypted (please note, that if the key is not EXACTLY 32 symbols long, then "#" symbols would be added to the key, to match the required length) ----> ')
+
+    # Managing the length of data and the key.
+    plain_txt = data_management(plain_txt)
+    key = key_management(key)
+
+    # Forming blocks of data and encoding the key (converting to bytes).
+    blocks_of_data = formation_of_blocks(plain_txt)
+    cipher_key = str(key).encode('utf-8')
+
+    # Encrypting.
+    encrypt_res = ''
+    for i in range (len(blocks_of_data)):                                      
+        res = magma_encrypt(cipher_key, blocks_of_data[i])
+        encrypt_res = encrypt_res + res.hex()
+        res = ''
+
+    # Printing results.
+    print('')
+    print('_____________________________________________________ENCRYPTION RESULTS_____________________________________________________')
+    print('')
+    print('Initial data :', plain_txt)
+    print('Key, which was used for encryption :', cipher_key.hex())
+    print('Encrypted data :', encrypt_res)
+    print('____________________________________________________________________________________________________________________________')
+    print('')
+
+    return 0
+
+# Magma decryption function.
+def MAGMA_DECRYPTION():
+
+    # Typing in encrypted data and encoded key (whilst checking if the user following the requirements).
+    enc_text = input('Type in the encrypted data ----> ')
+    while len(enc_text) % 8 != 0:
+        print('')
+        enc_text = input("Sorry, cannot accept this data as it can't be divided by 8. Please, try again ----> ")
+
+    print('')    
+
+    key = input('Type in the key, which was used for encryption (please note, that the key has to be EXACTLY 64 symbols long) ----> ')
+    while len(key) != 64:
+        print('')
+        key = input("Sorry, cannot accept this key as it doesn't match the required length. Please, try again ----> ")
+
+    # Forming blocks of encrypted data and converting back to bytes the key.
+    enc_blocks_of_data = formation_of_enc_blocks(enc_text)
+    key = bytes.fromhex(key)
+
+    # Decrypting.
+    decrypt_res = ''
+    for i in range (len(enc_blocks_of_data)):
+        res = magma_decrypt(key, enc_blocks_of_data[i])
+        decrypt_res = decrypt_res + res.hex()
+        res = ''
+
+    # Printing results
+    print('')
+    print('_____________________________________________________DECRYPTION RESULTS_____________________________________________________')
+    print('')
+    print('Initial encrypted data :', enc_text)
+    print('Key, which was used for decryption :', key.hex())
+    print('Decrypted data :', bytes.fromhex(decrypt_res).decode())
+    print('____________________________________________________________________________________________________________________________')
+    print('')
+
+    return 0
+    
+#______________________________________________MAIN OPERATING FUNCTION______________________________________________
+
+def MAGMA_ENCRYPTION_PROGRAM():
+
+    print("____________________________________________________MAGMA ENCRYPTION ALGORITHM____________________________________________________")
+    print('')
+
+    program_cycle_continue = True
+
+    while program_cycle_continue:
+        decision = input('Would you like to encrypt, decrypt data or exit the algorithm entirely? ----> ')
+
+        if decision.lower() == 'encrypt':
+            print('')
+            MAGMA_ENCRYPTION()
+
+        elif decision.lower() == 'decrypt':
+            print('')
+            MAGMA_DECRYPTION()
+
+        elif decision.lower() == 'exit':
+            print('__________________________________________________________________________________________________________________________________')
+            print('')
+            program_cycle_continue = False
+
+        else:
+            print('')
+            print('The entered data cannot be used to initiate any existing commands. Please try again.')
+            print('')    
+
+    return 0        
+
+#_____________________________________________USED VARIABLES_____________________________________________
+# NOTE --> The following variables are used in encryption/decryption Magma functions and the main operating function. These are displayed here for convenience.
 
 # plain_txt = ''                                 Data, which would be encrypted.
 # key = ''                                       Key, which is used for encryption or decryption.
@@ -170,80 +279,6 @@ def magma_decryption(k:bytes, block:bytes) -> bytes:
 # decrypt_res = ''                               Result of decryption.
 # program_cycle_continue = True/False            Determines whether the program continues running or stops entirely.   
 
-#____________________________________________________________________________________________________
+#________________________________________________________________________________________________________
 
-print("___________________________________________MAGMA ENCRYPTION PROGRAM______________________________________________")
-print('')
-
-program_cycle_continue = True
-
-while program_cycle_continue:
-    decision = input('Would you like to encrypt, decrypt data or exit the program entirely? ----> ')
-
-    if decision.lower() == 'encrypt':
-        print('')
-
-        # Typing in the data and the key. 
-        plain_txt = input('Type in the data you want to get encrypted ----> ')
-        key = input('Type in the key which will be used for encryption (the length of the key has to be EXACTLY 32 symbols long) ----> ')
-
-        # Managing the length of data and the key.
-        plain_txt = data_management(plain_txt)
-        key = key_management(key)
-
-        # Forming blocks of data and encoding the key (converting to bytes).
-        blocks_of_data = formation_of_blocks(plain_txt)
-        cipher_key = str(key).encode('utf-8')
-
-        # Encrypting.
-        encrypt_res = ''
-        for i in range (len(blocks_of_data)):                                      
-            res = magma_encryption(cipher_key, blocks_of_data[i])
-            encrypt_res = encrypt_res + res.hex()
-            res = ''
-
-        # Printing results.
-        print('')
-        print('_______________________________________________ENCRYPTION RESULTS_______________________________________________')
-        print('')
-        print('Initial data :', plain_txt)
-        print('Key, which was used for encryption :', cipher_key.hex())
-        print('Encrypted data :', encrypt_res)
-        print('________________________________________________________________________________________________________________')
-        print('')
-
-    elif decision.lower() == 'decrypt':
-        print('')
-
-        # Typing in encrypted data and encoded key (whilst checking if the user following the requirements).
-        enc_text = input('Type in the encrypted data ----> ')
-        while len(enc_text) % 8 != 0:
-            enc_text = input("Sorry, cannot accept this data as it can't be divided by 8. Please, try again ----> ")
-
-        key = input('Type in the key, which was used for encryption (please note, that the key has to be EXACTLY 64 symbols long) ----> ')
-        while len(key) != 64:
-            key = input("Sorry, cannot accept this key as it doesn't match the required length. Please, try again ----> ")
-
-        # Forming blocks of encrypted data and converting back to bytes the key.
-        enc_blocks_of_data = formation_of_enc_blocks(enc_text)
-        key = bytes.fromhex(key)
-
-        # Decrypting.
-        decrypt_res = ''
-        for i in range (len(enc_blocks_of_data)):
-            res = magma_decryption(key, enc_blocks_of_data[i])
-            decrypt_res = decrypt_res + res.hex()
-            res = ''
-
-        # Printing results
-        print('')
-        print('_______________________________________________DECRYPTION RESULTS_______________________________________________')
-        print('')
-        print('Initial encrypted data :', enc_text)
-        print('Key, which was used for decryption :', key.hex())
-        print('Decrypted data :', bytes.fromhex(decrypt_res).decode())
-        print('________________________________________________________________________________________________________________')
-        print('')
-
-    elif decision.lower() == 'exit':
-        program_cycle_continue = False        
+# MAGMA_ENCRYPTION_PROGRAM() # The start of the whole program.         

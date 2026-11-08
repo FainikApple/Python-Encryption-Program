@@ -69,25 +69,129 @@ def Opposite_of_Module(ch1:int, ch2:int) -> int:
         x1 = temp_x
     return x1 % ch2
 
-# Creates a key (public or private one) with the given arguments.
+# Creates a key (a public or a private one) with the given arguments.
 def key_creation(key:list, arg_1:int, arg_2:int) -> list:
     key.append(arg_1)
     key.append(arg_2)
     return key
 
 # Encrypting data with the given key and data.
-def encrypting_data(key:list, data:int) -> int:
+def RSA_encrypt(key:list, data:int) -> int:
     return data ** key[0] % key[1]
 
 # Decrypting data with the given key and encrypted data.
-def decrypting_data(key:list, data:int) -> int:
+def RSA_decrypt(key:list, data:int) -> int:
     return data ** key[0] % key[1]
 
-#____________________________________________________MAIN PROGRAM_____________________________________________
+#________________________________________ENCRYPTION/DECRYPTION FUNCTIONS______________________________________
+
+# RSA Encryption function.
+def RSA_ENCRYPTION():
+
+    # Typing in plain data.
+    data = int(input('Type in the information you want to get encrypted (must be numbers, big numbers need more time for them to get encrypted) ----> '))
+
+    # Generating two prime numbers and then multiplying them.
+    p, q = 0, 0
+    p = Prime_Randomizer(p)
+    q = Prime_Randomizer(q)
+    n = p * q
+
+    # Using Eiler function.
+    eN = Eiler_func(p, q)
+
+    # Picking the numbers 'e' and 'd' according to their particular details.
+    e = 0
+    e = Mutually_Simple(e, eN)
+    d = Opposite_of_Module(e, eN)
+
+    # Producing public and private keys.
+    public_key, priv_key = [], []
+    public_key = key_creation(public_key, e, n)
+    priv_key = key_creation(priv_key, d, n)
+
+    # Encrypting.
+    enc_data = RSA_encrypt(public_key, data)
+
+    # Printing results.
+    print('')
+    print('_____________________________________________________ENCRYPTION RESULTS_____________________________________________________')
+    print('')
+    print('Initial data :', data)
+    print('Private key :', priv_key[0], ',', priv_key[1])
+    print('Encrypted data :', enc_data)
+    print('____________________________________________________________________________________________________________________________')
+    print('')
+
+    return 0
+
+# RSA Decryption function.
+def RSA_DECRYPTION():
+
+    # Typing in encrypted data.
+    enc_data = int(input('Type in the encrypted data ----> '))
+
+    print('')
+
+    # Typing in and forming private key.
+    print('Type in the values of private key (in the SAME sequence) :')
+    val1 = int(input('First value of the private key ----> '))
+    val2 = int(input('Second value of the private key ----> '))
+    priv_key = []
+    priv_key.append(val1)
+    priv_key.append(val2)
+
+    # Decrypting data.
+    dec_data = RSA_decrypt(priv_key, enc_data)
+
+    # Printing results.
+    print('')
+    print('_____________________________________________________DECRYPTION RESULTS_____________________________________________________')
+    print('')
+    print('Initial encrypted data :', enc_data)
+    print('Private key, which was used for decryption :', priv_key[0], ',', priv_key[1])
+    print('Decrypted data :', dec_data)
+    print('____________________________________________________________________________________________________________________________')
+    print('')
+
+    return 0
+
+#____________________________________________________MAIN OPERATING FUNCTION_____________________________________________
+
+def RSA_ENCRYPTION_PROGRAM():
+
+    print("_____________________________________________________RSA ENCRYPTION ALGORITHM_____________________________________________________")
+    print('')
+
+    program_cycle_continue = True
+
+    while program_cycle_continue:
+        decision = input('Would you like to encrypt, decrypt data or exit the algorithm entirely? ----> ')
+
+        if decision.lower() == 'encrypt':
+            print('')
+            RSA_ENCRYPTION()
+
+        elif decision.lower() == 'decrypt':
+            print('')
+            RSA_DECRYPTION()
+
+        elif decision.lower() == 'exit':
+            print('__________________________________________________________________________________________________________________________________')
+            print('')
+            program_cycle_continue = False
+
+        else:
+            print('')
+            print('The entered data cannot be used to initiate any existing commands. Please try again.')
+            print('')    
+
+    return 0        
 
 #________________________________________USED VARIABLES________________________________________________
 
-# VERY IMPORTANT NOTE -----> This encryption algorithm is coded so that it will pick the numbers with which the data would be encrypted RANDOMLY(it's faster and easier to handle).
+# VERY IMPORTANT NOTE №1 --> This encryption algorithm is coded so that it will pick the numbers with which the data would be encrypted RANDOMLY(it's faster and easier to handle).
+# NOTE №2 --> The following variables are used in encryption/decryption RSA functions and the main operating function. These are displayed here for convenience.
 
 # p = 0                                     Prime number, used during encryption process.
 # q = 0                                     Prime number, used during encryption process.
@@ -104,78 +208,4 @@ def decrypting_data(key:list, data:int) -> int:
 
 #______________________________________________________________________________________________________
 
-print("___________________________________________RSA ENCRYPTION PROGRAM______________________________________________")
-print('')
-
-program_cycle_continue = True
-
-while program_cycle_continue:
-    decision = input('Would you like to encrypt, decrypt data or exit the program entirely? ----> ')
-
-    if decision.lower() == 'encrypt':
-        print('')
-
-        # Typing in plain data.
-        data = int(input('Type in the information you want to get encrypted (must be numbers, big numbers need more time for them to get encrypted) ----> '))
-
-        # Generating two prime numbers and then multiplying them.
-        p, q = 0, 0
-        p = Prime_Randomizer(p)
-        q = Prime_Randomizer(q)
-        n = p * q
-
-        # Using Eiler function.
-        eN = Eiler_func(p, q)
-
-        # Picking the numbers 'e' and 'd' according to their particular details.
-        e = 0
-        e = Mutually_Simple(e, eN)
-        d = Opposite_of_Module(e, eN)
-
-        # Producing public and private keys.
-        public_key, priv_key = [], []
-        public_key = key_creation(public_key, e, n)
-        priv_key = key_creation(priv_key, d, n)
-
-        # Encrypting.
-        enc_data = encrypting_data(public_key, data)
-
-        # Printing results.
-        print('')
-        print('_______________________________________________ENCRYPTION RESULTS_______________________________________________')
-        print('')
-        print('Initial data :', data)
-        print('Private key :', priv_key[0], ',', priv_key[1])
-        print('Encrypted data :', enc_data)
-        print('________________________________________________________________________________________________________________')
-        print('')
-
-    elif decision.lower() == 'decrypt':
-        print('')
-
-        # Typing in encrypted data.
-        enc_data = int(input('Type in the encrypted data ----> '))
-
-        # Typing in and forming private key.
-        print('Type in the values of private key (in the SAME sequence) :')
-        val1 = int(input('First value of the private key ----> '))
-        val2 = int(input('Second value of the private key ----> '))
-        priv_key = []
-        priv_key.append(val1)
-        priv_key.append(val2)
-
-        # Decrypting data.
-        dec_data = decrypting_data(priv_key, enc_data)
-
-        # Printing results.
-        print('')
-        print('_______________________________________________DECRYPTION RESULTS_______________________________________________')
-        print('')
-        print('Initial encrypted data :', enc_data)
-        print('Private key, which was used for decryption :', priv_key[0], ',', priv_key[1])
-        print('Decrypted data :', dec_data)
-        print('________________________________________________________________________________________________________________')
-        print('')
-
-    elif decision.lower() == 'exit':
-        program_cycle_continue = False   
+# RSA_ENCRYPTION_PROGRAM() # The start of the whole program.   
